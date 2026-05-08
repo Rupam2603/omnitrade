@@ -1,0 +1,223 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  color-scheme: dark;
+  background-color: #020617;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at 50% -20%, #1e293b 0%, #020617 100%);
+  overflow: hidden;
+}
+
+#root { width: 100%; height: 100vh; display: flex; justify-content: center; }
+
+/* Layout Utilities */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-1 { flex: 1 1 0%; }
+.h-screen { height: 100vh; }
+.w-screen { width: 100vw; }
+.h-full { height: 100%; }
+.w-full { width: 100%; }
+.items-center { align-items: center; }
+.items-end { align-items: flex-end; }
+.justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
+.gap-1 { gap: 0.25rem; }
+.gap-1-5 { gap: 0.375rem; }
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; }
+.gap-6 { gap: 1.5rem; }
+.p-2 { padding: 0.5rem; }
+.p-3 { padding: 0.75rem; }
+.p-4 { padding: 1rem; }
+.p-5 { padding: 1.25rem; }
+.p-6 { padding: 1.5rem; }
+.px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+.px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+.pb-2 { padding-bottom: 0.5rem; }
+.mt-1 { margin-top: 0.25rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mx-2 { margin-left: 0.5rem; margin-right: 0.5rem; }
+
+/* Styles */
+.glass {
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.border-b { border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+.border-r { border-right: 1px solid rgba(255, 255, 255, 0.05); }
+.border-t { border-top: 1px solid rgba(255, 255, 255, 0.05); }
+.border { border: 1px solid rgba(255, 255, 255, 0.05); }
+
+.rounded-lg { border-radius: 0.5rem; }
+.rounded-xl { border-radius: 0.75rem; }
+.rounded-2xl { border-radius: 1rem; }
+.rounded-full { border-radius: 9999px; }
+
+.bg-indigo-600 { background-color: #4f46e5; }
+.bg-indigo-500 { background-color: #6366f1; }
+.bg-slate-900 { background-color: #0f172a; }
+.bg-slate-800 { background-color: #1e293b; }
+.bg-white { background-color: #ffffff; }
+.text-white { color: #ffffff; }
+.text-slate-200 { color: #e2e8f0; }
+.text-slate-300 { color: #cbd5e1; }
+.text-slate-400 { color: #94a3b8; }
+.text-slate-500 { color: #64748b; }
+.text-slate-600 { color: #475569; }
+.text-indigo-400 { color: #818cf8; }
+.text-indigo-500 { color: #6366f1; }
+.text-green-500 { color: #22c55e; }
+.text-red-500 { color: #ef4444; }
+.text-amber-400 { color: #fbbf24; }
+.text-black { color: #000000; }
+
+.font-bold { font-weight: 700; }
+.font-black { font-weight: 900; }
+.font-medium { font-weight: 500; }
+.font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+.text-xs { font-size: 0.75rem; }
+.text-sm { font-size: 0.875rem; }
+.text-lg { font-size: 1.125rem; }
+.text-2xl { font-size: 1.5rem; }
+.text-4xl { font-size: 2.25rem; }
+.tracking-tight { letter-spacing: -0.025em; }
+.tracking-tighter { letter-spacing: -0.05em; }
+.tracking-widest { letter-spacing: 0.1em; }
+.uppercase { text-transform: uppercase; }
+
+.overflow-hidden { overflow: hidden; }
+.overflow-y-auto { overflow-y: auto; }
+.z-10 { z-index: 10; }
+.z-50 { z-index: 50; }
+.relative { position: relative; }
+.absolute { position: absolute; }
+.inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+
+.transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+
+/* Custom Glows */
+@keyframes glow {
+  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+.glow-green { animation: glow 2s infinite; }
+
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  width: 100%;
+}
+
+/* Modern Sidebar & UI Styles */
+.sidebar-glass {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(40px);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 10px 0 50px -10px rgba(0, 0, 0, 0.5);
+}
+
+.ticker-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  margin: 0 0.5rem;
+  padding: 0.875rem 1rem;
+  border-radius: 1rem;
+}
+
+.ticker-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+  transform: translateX(4px);
+}
+
+.ticker-card.active {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.15) 0%, rgba(79, 70, 229, 0.05) 100%);
+  border-color: rgba(79, 70, 229, 0.3);
+  box-shadow: 0 4px 20px -4px rgba(79, 70, 229, 0.2);
+}
+
+.ticker-card.active::before {
+  content: '';
+  position: absolute;
+  left: -2px;
+  top: 25%;
+  height: 50%;
+  width: 3px;
+  background: #6366f1;
+  border-radius: 99px;
+  box-shadow: 0 0 10px #6366f1;
+}
+
+.section-header {
+  padding: 1.5rem 1.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Paper Trading UI */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.bg-white\/5 { background-color: rgba(255, 255, 255, 0.05); }
+.bg-white\/10 { background-color: rgba(255, 255, 255, 0.1); }
+.bg-white\/\[0\.08\] { background-color: rgba(255, 255, 255, 0.08); }
+.bg-white\/\[0\.02\] { background-color: rgba(255, 255, 255, 0.02); }
+
+.bg-green-500\/10 { background-color: rgba(34, 197, 94, 0.1); }
+.bg-red-500\/10 { background-color: rgba(239, 68, 68, 0.1); }
+.bg-indigo-500\/10 { background-color: rgba(99, 102, 241, 0.1); }
+.bg-indigo-500\/20 { background-color: rgba(99, 102, 241, 0.2); }
+
+.border-indigo-500\/20 { border-color: rgba(99, 102, 241, 0.2); }
+.border-indigo-500\/30 { border-color: rgba(99, 102, 241, 0.3); }
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .5; }
+}
+
+.ml-\[50\%\] { margin-left: 50%; }
+.mr-\[50\%\] { margin-right: 50%; }
+
+.animate-glow-text {
+  text-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+}

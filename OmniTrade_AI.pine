@@ -1,0 +1,184 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © OmniTrade_AI
+
+//@version=5
+indicator("OmniTrade AI [Pro]", overlay=true, max_labels_count=500, max_boxes_count=50, max_bars_back=500)
+
+// ==========================================
+// 1. INPUTS
+// ==========================================
+grp_signal = "Signal Generation"
+st_atr_len = input.int(10, "Supertrend ATR Length", group=grp_signal, tooltip="Period for ATR calculation in Supertrend")
+st_mult    = input.float(3.0, "Supertrend Multiplier", group=grp_signal, tooltip="Multiplier for Supertrend calculation")
+ema_len    = input.int(200, "Macro EMA Filter", group=grp_signal, tooltip="Trend filter: Only BUY above this, SELL below this")
+
+grp_risk = "Risk Management"
+sl_atr_mult = input.float(2.0, "SL ATR Multiplier", group=grp_risk, tooltip="Stop Loss distance from entry using ATR")
+tp1_rr = input.float(1.0, "TP1 Risk:Reward", group=grp_risk)
+tp2_rr = input.float(1.5, "TP2 Risk:Reward", group=grp_risk)
+tp3_rr = input.float(2.0, "TP3 Risk:Reward", group=grp_risk)
+tp4_rr = input.float(3.0, "TP4 Risk:Reward", group=grp_risk)
+
+grp_visual = "Visuals & Alerts"
+show_labels = input.bool(true, "Show Signal Labels", group=grp_visual)
+show_zones  = input.bool(true, "Show Supply/Demand Zones", group=grp_visual)
+show_panel  = input.bool(true, "Show Dashboard Panels", group=grp_visual)
+adx_threshold = input.int(20, "Sideways ADX Threshold", group=grp_visual, tooltip="If ADX is below this, market is considered sideways (Blue Candles)")
+panel_pos   = input.string("Top Right", "Dashboard Position", options=["Top Right", "Bottom Right", "Top Left", "Bottom Left"], group=grp_visual)
+
+grp_fx = "Forex Screener"
+fx1 = input.symbol("FX:EURUSD", "FX Ticker 1", group=grp_fx)
+fx2 = input.symbol("FX:GBPUSD", "FX Ticker 2", group=grp_fx)
+fx3 = input.symbol("FX:USDJPY", "FX Ticker 3", group=grp_fx)
+fx4 = input.symbol("FX:AUDUSD", "FX Ticker 4", group=grp_fx)
+fx5 = input.symbol("FX:USDCHF", "FX Ticker 5", group=grp_fx)
+
+// ==========================================
+// 2. CORE LOGIC - TREND & SIGNALS
+// ==========================================
+[st_value, st_dir] = ta.supertrend(st_mult, st_atr_len)
+ema_filter = ta.ema(close, ema_len)
+
+buy_signal  = ta.change(st_dir) < 0 and close > ema_filter
+sell_signal = ta.change(st_dir) > 0 and close < ema_filter
+
+// ATR for dynamic risk
+atr = ta.atr(14)
+
+// Persistent state for trade tracking
+var float entry_p = na
+var float sl_p = na
+var float risk_val = na
+var float tp1 = na, var float tp2 = na, var float tp3 = na, var float tp4 = na
+
+if buy_signal
+    entry_p  := close
+    sl_p     := close - (atr * sl_atr_mult)
+    risk_val := entry_p - sl_p
+    tp1 := entry_p + (risk_val * tp1_rr)
+    tp2 := entry_p + (risk_val * tp2_rr)
+    tp3 := entry_p + (risk_val * tp3_rr)
+    tp4 := entry_p + (risk_val * tp4_rr)
+    if show_labels
+        label.new(bar_index, high, "BUY\nEP: " + str.tostring(entry_p, format.mintick) + "\nSL: " + str.tostring(sl_p, format.mintick), color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_down, size=size.normal)
+
+if sell_signal
+    entry_p  := close
+    sl_p     := close + (atr * sl_atr_mult)
+    risk_val := sl_p - entry_p
+    tp1 := entry_p - (risk_val * tp1_rr)
+    tp2 := entry_p - (risk_val * tp2_rr)
+    tp3 := entry_p - (risk_val * tp3_rr)
+    tp4 := entry_p - (risk_val * tp4_rr)
+    if show_labels
+        label.new(bar_index, low, "SELL\nEP: " + str.tostring(entry_p, format.mintick) + "\nSL: " + str.tostring(sl_p, format.mintick), color=color.new(color.red, 20), textcolor=color.white, style=label.style_label_up, size=size.normal)
+
+// Alerts
+alertcondition(buy_signal, "Buy Signal", "OmniTrade AI: Long Opportunity Detected!")
+alertcondition(sell_signal, "Sell Signal", "OmniTrade AI: Short Opportunity Detected!")
+
+// ==========================================
+// 3. ADVANCED FEATURES
+// ==========================================
+// Sideways Market Detection
+[diplus, diminus, adx] = ta.dmi(14, 14)
+is_sideways = adx < adx_threshold
+barcolor(is_sideways ? color.new(color.blue, 40) : na)
+
+// Supply and Demand Zones (Order Blocks)
+if show_zones
+    p_len = 10
+    ph = ta.pivothigh(high, p_len, p_len)
+    pl = ta.pivotlow(low, p_len, p_len)
+    if not na(ph)
+        box.new(bar_index[p_len], ph, bar_index + 10, ph * 0.998, bgcolor=color.new(color.red, 90), border_color=color.new(color.red, 70), extend=extend.right)
+    if not na(pl)
+        box.new(bar_index[p_len], pl * 1.002, bar_index + 10, pl, bgcolor=color.new(color.green, 90), border_color=color.new(color.green, 70), extend=extend.right)
+
+// ==========================================
+// 4. DASHBOARD PANELS
+// ==========================================
+f_get_trend_state() =>
+    [st_v, st_d] = ta.supertrend(st_mult, st_atr_len)
+    ema_v = ta.ema(close, ema_len)
+    (close > ema_v and st_d < 0) ? 1 : (close < ema_v and st_d > 0) ? -1 : 0
+
+// MTF Security Calls
+trend_current = f_get_trend_state()
+trend_15m = request.security(syminfo.tickerid, "15", f_get_trend_state())
+trend_30m = request.security(syminfo.tickerid, "30", f_get_trend_state())
+trend_1h  = request.security(syminfo.tickerid, "60", f_get_trend_state())
+
+// Table Positioning
+pos = panel_pos == "Top Right" ? position.top_right : panel_pos == "Bottom Right" ? position.bottom_right : panel_pos == "Top Left" ? position.top_left : position.bottom_left
+
+// MTF Table
+var table panel = table.new(pos, 5, 2, bgcolor=color.new(color.black, 40), border_width=1, border_color=color.gray)
+if show_panel and barstate.islast
+    table.cell(panel, 0, 0, "TF", text_color=color.white, text_size=size.small)
+    table.cell(panel, 1, 0, "CUR", text_color=color.white, text_size=size.small)
+    table.cell(panel, 2, 0, "15M", text_color=color.white, text_size=size.small)
+    table.cell(panel, 3, 0, "30M", text_color=color.white, text_size=size.small)
+    table.cell(panel, 4, 0, "1H", text_color=color.white, text_size=size.small)
+    
+    f_color(s) => s == 1 ? color.new(color.green, 20) : s == -1 ? color.new(color.red, 20) : color.new(color.gray, 50)
+    f_text(s)  => s == 1 ? "BULL" : s == -1 ? "BEAR" : "SIDE"
+    
+    table.cell(panel, 0, 1, "Trend", text_color=color.white, text_size=size.small)
+    table.cell(panel, 1, 1, f_text(trend_current), bgcolor=f_color(trend_current), text_color=color.white, text_size=size.small)
+    table.cell(panel, 2, 1, f_text(trend_15m), bgcolor=f_color(trend_15m), text_color=color.white, text_size=size.small)
+    table.cell(panel, 3, 1, f_text(trend_30m), bgcolor=f_color(trend_30m), text_color=color.white, text_size=size.small)
+    table.cell(panel, 4, 1, f_text(trend_1h), bgcolor=f_color(trend_1h), text_color=color.white, text_size=size.small)
+
+// Screener Logic (Dynamic Inputs)
+t1 = "NSE:AXISBANK", t2 = "NSE:BAJAJFINSV", t3 = "NSE:RELIANCE", t4 = "NSE:TCS", t5 = "NSE:INFY"
+s1 = request.security(t1, timeframe.period, f_get_trend_state())
+s2 = request.security(t2, timeframe.period, f_get_trend_state())
+s3 = request.security(t3, timeframe.period, f_get_trend_state())
+s4 = request.security(t4, timeframe.period, f_get_trend_state())
+s5 = request.security(t5, timeframe.period, f_get_trend_state())
+
+// Forex Screener Security Calls
+fs1 = request.security(fx1, timeframe.period, f_get_trend_state())
+fs2 = request.security(fx2, timeframe.period, f_get_trend_state())
+fs3 = request.security(fx3, timeframe.period, f_get_trend_state())
+fs4 = request.security(fx4, timeframe.period, f_get_trend_state())
+fs5 = request.security(fx5, timeframe.period, f_get_trend_state())
+
+// Screener Table (Positioned below MTF panel)
+var table screener = table.new(pos, 4, 6, bgcolor=color.new(color.black, 40), border_width=1, border_color=color.gray)
+if show_panel and barstate.islast
+    // Headers
+    table.cell(screener, 0, 0, "STOCKS", text_color=color.white, text_size=size.small)
+    table.cell(screener, 1, 0, "SIGNAL", text_color=color.white, text_size=size.small)
+    table.cell(screener, 2, 0, "FOREX", text_color=color.white, text_size=size.small)
+    table.cell(screener, 3, 0, "SIGNAL", text_color=color.white, text_size=size.small)
+    
+    // Stock Rows
+    table.cell(screener, 0, 1, "AXIS", text_color=color.white, text_size=size.small)
+    table.cell(screener, 1, 1, f_text(s1), bgcolor=f_color(s1), text_color=color.white, text_size=size.small)
+    table.cell(screener, 0, 2, "BAJAJ", text_color=color.white, text_size=size.small)
+    table.cell(screener, 1, 2, f_text(s2), bgcolor=f_color(s2), text_color=color.white, text_size=size.small)
+    table.cell(screener, 0, 3, "RELIANCE", text_color=color.white, text_size=size.small)
+    table.cell(screener, 1, 3, f_text(s3), bgcolor=f_color(s3), text_color=color.white, text_size=size.small)
+    table.cell(screener, 0, 4, "TCS", text_color=color.white, text_size=size.small)
+    table.cell(screener, 1, 4, f_text(s4), bgcolor=f_color(s4), text_color=color.white, text_size=size.small)
+    table.cell(screener, 0, 5, "INFY", text_color=color.white, text_size=size.small)
+    table.cell(screener, 1, 5, f_text(s5), bgcolor=f_color(s5), text_color=color.white, text_size=size.small)
+
+    // Forex Rows
+    table.cell(screener, 2, 1, "EURUSD", text_color=color.white, text_size=size.small)
+    table.cell(screener, 3, 1, f_text(fs1), bgcolor=f_color(fs1), text_color=color.white, text_size=size.small)
+    table.cell(screener, 2, 2, "GBPUSD", text_color=color.white, text_size=size.small)
+    table.cell(screener, 3, 2, f_text(fs2), bgcolor=f_color(fs2), text_color=color.white, text_size=size.small)
+    table.cell(screener, 2, 3, "USDJPY", text_color=color.white, text_size=size.small)
+    table.cell(screener, 3, 3, f_text(fs3), bgcolor=f_color(fs3), text_color=color.white, text_size=size.small)
+    table.cell(screener, 2, 4, "AUDUSD", text_color=color.white, text_size=size.small)
+    table.cell(screener, 3, 4, f_text(fs4), bgcolor=f_color(fs4), text_color=color.white, text_size=size.small)
+    table.cell(screener, 2, 5, "USDCHF", text_color=color.white, text_size=size.small)
+    table.cell(screener, 3, 5, f_text(fs5), bgcolor=f_color(fs5), text_color=color.white, text_size=size.small)
+
+// Plotting indicators for visual confirmation
+plot(st_dir < 0 ? st_value : na, "Supertrend Bull", color=color.new(color.green, 20), style=plot.style_linebr, linewidth=2)
+plot(st_dir > 0 ? st_value : na, "Supertrend Bear", color=color.new(color.red, 20), style=plot.style_linebr, linewidth=2)
+plot(ema_filter, "Macro Filter (EMA 200)", color=color.new(color.gray, 60), linewidth=1)
